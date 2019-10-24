@@ -9,6 +9,13 @@ A criteria-based application configuration engine.
 - https://github.com/microbean/microbean-configuration 
 - https://unleash.github.io/ 
 
+# UI Inspiration
+
+- https://unleash.github.io/
+- https://marmelab.com/react-admin/
+- https://akveo.github.io/ngx-admin/
+- https://github.com/coreui/coreui-free-bootstrap-admin-template
+
 # Key Principles
 
 - User can specify the different criteria that identify a configuration value
