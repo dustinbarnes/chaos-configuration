@@ -27,11 +27,21 @@ A criteria-based application configuration engine.
 
 To minimize the entropy of a config system, it needs to be as easy as possible to (1) set a global default value, and (2) be concise and specific in the overrides. Too often, the overrides for variations on a piece of software sit inside something like a puppet file, or spread across multiple files corresponding to multiple environments, regions, availability zones, and more. This makes your configuration extremely difficult to manage when your teams hit some arbitrary scale. In most config systems, you need to look at all the files to find your configuration gaps. Instead, this software is meant to store the configuration metadata, default value, and specific overrides, all in one object. 
 
+# Developer Details
+
+1. Using TypeScript, and Yarn for dependencies.
+2. Using OvernightJS for TypeScript+Express decorators for routing and controllers: https://github.com/seanpmaxwell/overnight/#overnight-core
+3. Using Pino for logging 
+4. This app's configuration is ONLY through environment variables. See `config.ts` for values for now.
+5. Using the [keyv](https://www.npmjs.com/package/keyv) database abstraction.
+
+To run: `npm run build && node build/run.js`.  
 
 # Other Things
 
-- Applications are like namespaces
-- Ideally just a key/value store for persisitence
+- Top-level namespaces independent of any other concept.
+- Applications are a config dimension in a highly connected service-based system.
+- Ideally just a key/value store for persistence
 
 # Configuration Example Cases
 
