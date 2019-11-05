@@ -4,19 +4,21 @@ import { ConfigConfig, getConfig } from './config';
 import { HealthController } from './controller';
 import { EventEmitter } from 'events';
 import { Logger } from './logger';
-//import { Keyv } from 'keyv';
+import { Repository } from './db/repository';
+import { TestController } from './controller/test';
 
 export class Server extends BaseServer {
-    private appConfig: ConfigConfig;
-    private readonly eventBus: EventEmitter;
+    private readonly appConfig: ConfigConfig;
 
     constructor(config: ConfigConfig) {
         super();
 
-        this.appConfig = getConfig(config);
-        //const keyv = new Keyv();
+        this.appConfig = getConfig();
+        this.app.locals.repo = new Repository(this.appConfig.dbUrl);
 
         this.app.locals.appConfig = this.appConfig;
+        this.app.locals.eventBus = new EventEmitter();
+
         this.app.use(Logger.express(config));
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({extended: true}));
@@ -24,19 +26,17 @@ export class Server extends BaseServer {
         this.app.set('trust proxy', true);
         this.app.disable('x-powered-by');
         this.app.set('port', this.appConfig.port);
-        this.app.locals.baseUriPath = this.appConfig.baseUriPath;
-
-        this.eventBus = new EventEmitter();
 
         super.addControllers([
             new HealthController(),
+            new TestController(this.app),
         ]);
     }
 
     public start(): Promise<any> {
         const server = this.app.listen(this.appConfig.port);
         const scopedApp = this.app;
-        const scopedEventBus = this.eventBus;
+        const scopedEventBus = this.app.locals.eventBus;
 
         return new Promise((resolve, reject) => {
             server.on('listening', () =>

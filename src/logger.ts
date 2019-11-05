@@ -12,7 +12,7 @@ export class Logger {
 
     static getInstance(config? : ConfigConfig): pino.Logger {
         if (!Logger.instance) {
-            const prettyPrint = (config && config.prettyLogging) || false;
+            const prettyPrint = true; //(config && config.prettyLogging) || false;
             const logLevel = (config && config.logLevel) || 'info';
 
             Logger.instance = pino({

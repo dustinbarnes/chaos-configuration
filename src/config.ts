@@ -1,32 +1,28 @@
+import * as env from 'env-var';
 
 require('pkginfo')(module, 'version');
 const version = module.exports.version;
 
 // Non-ironically not using your own config engine? Ok.
-
 export class ConfigConfig {
     // Just to make it easy to output it somewhere.
     readonly version: string = version;
 
-    //database: string = "mysql://user:password@localhost/test";
+    readonly dbUrl: string = env.get('DB_URL', '').asString();
 
     // Default port
-    port: number = 8080;
+    readonly port: number = env.get('HTTP_PORT', '8080').asPortNumber();
 
     // Print logs as formatted JSON. On by default in non-prod environments.
-    prettyLogging: boolean = !process.env.NODE_ENV || process.env.NODE_ENV != 'production';
+    readonly prettyLogging: boolean = env.get('NODE_ENV', 'non-prod').asString() !== 'production';
 
     // Default logging level
-    logLevel: string = "info";
+    readonly logLevel: string = env.get('LOG_LEVEL', 'info').asString();
 
     // If you basically want to add a context root (like /config/foo/bar/api/client)
-    baseUriPath: string = "";
+    readonly baseUriPath: string = env.get('BASE_URI_PATH', '').asString();
 }
 
-function defaultOptions() {
-    return new ConfigConfig();
-}
-
-export function getConfig(opts: any): ConfigConfig {
-    return { ...defaultOptions(), ...opts };
+export function getConfig(): ConfigConfig {
+    return new ConfigConfig;
 }
