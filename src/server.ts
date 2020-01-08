@@ -5,7 +5,7 @@ import { HealthController } from './controller';
 import { EventEmitter } from 'events';
 import { Logger } from './logger';
 import { Repository } from './db/repository';
-import { TestController } from './controller/test';
+import { TestController } from './controller/check';
 
 export class Server extends BaseServer {
     private readonly appConfig: ConfigConfig;

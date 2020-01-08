@@ -3,13 +3,13 @@ import { Controller, Get } from '@overnightjs/core';
 import { Application, Response } from 'express';
 import { RequestExt } from '../logger';
 import { Repository } from '../db/repository';
-import { ConfigValue } from '../models';
+import { ConfigValue, Arbiter, ConfigEntry, defaultArbiter } from '../models';
 import { inspect } from 'util';
+import { Logger } from '../logger'
 
 // This class is where I'm prototyping new ideas. Shouldn't be included in repo. 
-@Controller('test')
+@Controller('check')
 export class TestController {
-
     constructor(private app: Application) {}
 
     @Get(':namespace/:key')
@@ -80,6 +80,8 @@ export class TestController {
             criteriaMap.set('accountType', 'bronze');
             criteriaMap.set('customerId', 'really-big-customer');
             result['obj_all'] = obj.evaluate(criteriaMap);
+
+            //result['obj_all_ranked'] = obj.evaluate(criteriaMap, new RankingArbiter());
 
             return res.status(OK).json(result);
         } catch (e) {
@@ -185,3 +187,4 @@ export class TestController {
         }
     }
 }
+

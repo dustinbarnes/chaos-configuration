@@ -3,7 +3,7 @@ import * as pino from 'pino';
 import { inspect } from 'util';
 
 export class ConfigEntry {
-    constructor(public value: any, public criteria: object) {}
+    constructor(public value: any, public criteria: Map<string, string>) {}
 
     static fromJsonToList(blob: any): ConfigEntry[] {
         let list: [any] = blob;
@@ -11,7 +11,26 @@ export class ConfigEntry {
             list = [blob];
         }
 
-        return list.map((raw: any) => new ConfigEntry(raw.value, raw.criteria));
+        return list.map((raw: any) => {
+            return ConfigEntry.fromJson(raw);
+        });
+    }
+
+    static fromJson(blob: any): ConfigEntry {
+        const value = blob.value;
+        const criteria: Map<string, string> = new Map(Object.entries(blob.criteria));
+    
+        return new ConfigEntry(value, criteria);
+    }
+
+    toJson(): object {
+        // convert criteria map to standard js object literal
+        let obj = [...this.criteria.entries()].reduce((obj, [key, value]) => (obj[key] = value, obj), {});
+
+        return {
+            value: this.value,
+            criteria: obj
+        }
     }
 }
 
@@ -21,62 +40,94 @@ export class ConfigItem {
     static fromJson(blob: any) {
         return new ConfigItem(blob.base, ConfigEntry.fromJsonToList(blob.specifics));
     }
+
+    toJson(): object {
+        return {
+            base: this.base,
+            specifics: this.specifics.map(e => e.toJson())
+        }
+    }
 }
 
 export interface Arbiter {
-    (items: ConfigEntry[], criteria: Map<string, string>): ConfigEntry
+    arbitrate(items: ConfigEntry[], criteria: Map<string, string>): ConfigEntry;
 }
 
-export function defaultArbiter(items: ConfigEntry[], criteria: Map<string, string>): ConfigEntry {
-    // By default, most-specific-match wins first
-    let ranked = items
-            .map((entry: ConfigEntry) => {
-                return {"entry": entry, matches: Object.keys(entry.criteria).length };
-            })
-            .sort((a, b) => b.matches - a.matches);
+class DefaultArbiter {
+    arbitrate(items: ConfigEntry[], criteria: Map<string, string>): ConfigEntry {
+        // In this default arbiter, most-specific-match wins first
+        // So first we find the largest item size
 
-    const max = ranked[0].matches;
-    
-    let matches = ranked
-            .filter((item) => item.matches === max)
-            .map((item) => item.entry);
+        // For some reason, we can't guarantee that an actual map is coming for the item entry criteria.
+        // Likely some bug to fix
+        const topRanked = Math.max(...items.map(e => e.criteria.size));
 
-    if (matches.length != 1) {
-        Logger.getInstance().warn(`Still have multiple matches after specificity ranking: ${inspect(matches, false, 4)}`);
+        const matches = items.filter(it => it.criteria.size === topRanked);
+
+        if (matches.length === 0) {
+            throw new Error("Arbiter removed all matches -- probably an error in code");
+        }
+
+        if (matches.length > 1) {
+            Logger.getInstance().warn(`Still have multiple matches after specificity ranking: ${inspect(matches, false, 4)}`);
+        }
+
+        return matches[0];
     }
+}
 
-    return matches[0];
+export const defaultArbiter: Arbiter = new DefaultArbiter();
+
+// The evaluators determine whether or not the specific item could be considered a match, as well as the count of fields that matched
+export interface Evaluator {
+    (item: ConfigItem, criteria: Map<string, string>): ConfigEntry[]
+}
+
+export function defaultEvaluator(item: ConfigItem, criteria: Map<string, string>): ConfigEntry[] {
+    let evaluated: ConfigEntry[] = [];
+
+    item.specifics && item.specifics.forEach((entry: ConfigEntry) => {
+        let matches = [...entry.criteria.keys()].filter((key: string) => {
+            const value = entry.criteria.get(key);
+            return criteria.has(key) && criteria.get(key) === value;
+        });
+
+        if (matches.length === entry.criteria.size) {
+            evaluated.push(entry);
+        }
+    });
+
+    return evaluated;
 }
 
 export class ConfigValue {
-    private static logger: pino.Logger = Logger.getInstance();
-
-    constructor(public namespace: string, public key: string, public value: ConfigItem) {}
+    constructor(
+        public namespace: string, 
+        public key: string, 
+        public value: ConfigItem) {}
 
     static fromJson(blob: any) {
         return new ConfigValue(blob.namespace, blob.key, ConfigItem.fromJson(blob.value));
     }
 
-    evaluate(criteria: Map<string, string>, arbiter: Arbiter = defaultArbiter): any {
-        let evaluated = [];
-        if (this.value.specifics) {
-            evaluated = this.value.specifics
-                .filter((entry: ConfigEntry) => {
-                    let matches = Object.keys(entry.criteria).filter((key: string) => {
-                        const value = entry.criteria[key];
-                        return criteria.has(key) && criteria.get(key) === value;
-                    });
-
-                    return (matches.length === Object.keys(entry.criteria).length);
-                });
+    toJson(): object {
+        return {
+            namespace: this.namespace,
+            key: this.key,
+            value: this.value.toJson()
         }
+    }
+
+    evaluate(criteria: Map<string, string>, evaluator: Evaluator = defaultEvaluator, arbiter: Arbiter = defaultArbiter): any {
+        const evaluated = evaluator(this.value, criteria);
 
         if (!evaluated || evaluated.length <= 0) {
             return this.value.base;
         } else if (evaluated.length === 1) {
             return evaluated[0].value;
         } else {
-            return arbiter(evaluated, criteria).value;
+            // defer to arbitrator
+            return arbiter.arbitrate(evaluated, criteria).value;
         }
     }
 }

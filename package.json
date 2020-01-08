@@ -42,5 +42,17 @@
         "pkginfo": "^0.4.1",
         "tslib": "~1.10.0"
     },
-    "license": "Apache-2.0"
+    "license": "Apache-2.0",
+    "jest": {
+        "roots": [
+            "<rootDir>/src"
+        ],
+        "testMatch": [
+            "**/__tests__/**/*.+(ts|tsx|js)",
+            "**/?(*.)+(spec|test).+(ts|tsx|js)"
+        ],
+        "transform": {
+            "^.+\\.(ts|tsx)$": "ts-jest"
+        }
+    }
 }
