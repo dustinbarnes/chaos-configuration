@@ -1,10 +1,10 @@
-import { Repository } from './db/repository';
-import { ConfigValue } from './models';
-import { Logger } from './logger'
-import { getConfig } from './config';
-import { RankingArbiter } from './arbiter';
-import { DefaultResolver } from './resolver';
-import { DefaultEvaluator } from './evaluator';
+import { Repository } from '../db/repository';
+import { ConfigValue } from '.';
+import { Logger } from '../logger'
+import { getConfig } from '../config';
+import { RankingArbiter } from '../arbiter';
+import { DefaultResolver } from '../resolver';
+import { DefaultEvaluator } from '../evaluator';
 
 const config = getConfig();
 const repo = new Repository(config.dbUrl);

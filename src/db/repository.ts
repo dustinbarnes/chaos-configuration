@@ -1,5 +1,5 @@
 import * as Keyv from 'keyv';
-import { ConfigValue } from '../models';
+import { ConfigValue } from '../model';
 
 export class Repository {
     private readonly keyv: Keyv;
