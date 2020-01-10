@@ -1,4 +1,4 @@
-import { ConfigItem, ConfigEntry } from '../models';
+import { ConfigItem, ConfigEntry } from '../model';
 
 export * from './base'
 

@@ -5,6 +5,7 @@ import { HealthController, ClientController, AdminController } from './controlle
 import { EventEmitter } from 'events';
 import { Logger } from './logger';
 import { Repository } from './db/repository';
+import { loadData } from './util/data-loader';
 
 export class Server extends BaseServer {
     private readonly appConfig: ConfigConfig;
@@ -14,6 +15,9 @@ export class Server extends BaseServer {
 
         this.appConfig = getConfig();
         this.app.locals.repo = new Repository(this.appConfig.dbUrl);
+
+        // Just for testing
+        loadData(this.app.locals.repo);
 
         this.app.locals.appConfig = this.appConfig;
         this.app.locals.eventBus = new EventEmitter();

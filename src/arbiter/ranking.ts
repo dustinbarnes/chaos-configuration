@@ -1,5 +1,5 @@
 import { Arbiter } from './base';
-import { ConfigEntry } from '../models';
+import { ConfigEntry } from '../model';
 
 export class RankingArbiter implements Arbiter {
     constructor(private fieldMapping: Map<string, number> = new Map()) {}

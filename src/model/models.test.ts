@@ -5,11 +5,12 @@ import { getConfig } from '../config';
 import { RankingArbiter } from '../arbiter';
 import { DefaultResolver } from '../resolver';
 import { DefaultEvaluator } from '../evaluator';
+import { loadData } from '../util/data-loader';
 
 const config = getConfig();
 const repo = new Repository(config.dbUrl);
 
-beforeEach(async () => prepareDb());
+beforeEach(async () => loadData(repo));
 
 describe('repo tests', () => {
     test(`Criteria comes back from keyv store`, async () => {
@@ -129,75 +130,3 @@ describe('Object Specificity Tests with Ranking', () => {
         expect(resolver.resolve(obj.value, criteriaMap).type).toEqual('custid-only');
     })
 });
-
-
-async function prepareDb() {
-    const i18n = ConfigValue.fromJson({
-        "namespace": "default",
-        "key": "middle-i18n",
-        "value": {
-            "base": "middle",
-            "specifics": [
-                {
-                    "value": "center",
-                    "criteria": {
-                        "region": "us",
-                        "lang": "en"
-                    }
-                }, {
-                    "value": "centre",
-                    "criteria": {
-                        "region": "uk",
-                        "lang": "en"
-                    }
-                }
-            ]
-        }
-    });
-
-    const objectConfig = ConfigValue.fromJson({
-        "namespace": "default",
-        "key": "json-obj-example",
-        "value": {
-            "base": {
-                "type": "default",
-                "size": 20,
-                "refillRate": 300,
-                "refillSize": 20
-            },
-            "specifics": [
-                { 
-                    "value": {
-                        "type": "custid-only",
-                        "size": 500,
-                        "refillRate": 1,
-                        "refillSize": 3
-                    },
-                    "criteria": {
-                        "customerId": "really-big-customer"
-                    }
-                },{
-                    "value": {
-                        "type": "us-bronze",
-                        "size": 3,
-                        "refillRate": 1,
-                        "refillSize": 1
-                    },
-                    "criteria": {
-                        "region": "us",
-                        "accountType": "bronze"
-                    }
-                }
-            ]
-        }
-    });    
-
-    try {
-        await repo.set(i18n.namespace, i18n.key, i18n);
-        await repo.set(objectConfig.namespace, objectConfig.key, objectConfig);
-    } catch (e) {
-        Logger.getInstance().error(e);
-        throw e;
-    }
-}
-
