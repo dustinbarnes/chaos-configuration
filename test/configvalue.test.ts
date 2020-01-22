@@ -1,20 +1,23 @@
-import { Repository } from '../db/repository';
-import { ConfigValue } from '.';
-import { Logger } from '../logger'
-import { getConfig } from '../config';
-import { RankingArbiter } from '../arbiter';
-import { DefaultResolver } from '../resolver';
-import { DefaultEvaluator } from '../evaluator';
-import { loadData } from '../util/data-loader';
+import { ConfigStore } from '../src/db/config-store';
+import { ConfigValue } from '../src/model';
+// import { Logger } from '../logger'
+import { getConfig } from '../src/config';
+import { RankingArbiter } from '../src/arbiter';
+import { DefaultResolver } from '../src/resolver';
+import { DefaultEvaluator } from '../src/evaluator';
+import { loadData } from '../src/util/data-loader';
+import * as Knex from 'knex';
 
 const config = getConfig();
-const repo = new Repository(config.dbUrl);
+const store = new ConfigStore(config.db);
+const db = Knex(config.db);    
 
-beforeEach(async () => loadData(repo));
+beforeAll(async () => await db.migrate.latest());
+beforeEach(async () => loadData());
 
 describe('repo tests', () => {
-    test(`Criteria comes back from keyv store`, async () => {
-        const i18n = await repo.get('default', 'middle-i18n')
+    test(`Criteria comes back from config store`, async () => {
+        const i18n = await store.get('default', 'middle-i18n');
         expect(i18n.value.specifics[0].criteria.size).toBeGreaterThan(0);
     });
 })
@@ -25,7 +28,8 @@ describe('i18n tests', () => {
     let resolver = new DefaultResolver();
 
     beforeEach(async () => {
-        intl = await repo.get('default', 'middle-i18n');
+        intl = await store.get('default', 'middle-i18n');
+        console.log(intl);
         criteriaMap = new Map();
     })
 
@@ -64,7 +68,7 @@ describe('Object Specificity Tests', () => {
     let resolver = new DefaultResolver();
 
     beforeEach(async () => {
-        obj = await repo.get('default', 'json-obj-example');
+        obj = await store.get('default', 'json-obj-example');
         criteriaMap = new Map();
     })
 
@@ -100,7 +104,7 @@ describe('Object Specificity Tests with Ranking', () => {
     let resolver = new DefaultResolver(new DefaultEvaluator(), arbiter);
 
     beforeEach(async () => {
-        obj = await repo.get('default', 'json-obj-example');
+        obj = await store.get('default', 'json-obj-example');
         criteriaMap = new Map();
     })
 

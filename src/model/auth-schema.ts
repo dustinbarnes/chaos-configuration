@@ -1,3 +1,28 @@
+
+export type AuthToken = {
+    accessToken: string,
+    kind: string
+};
+
+export interface User {
+    username?: string;
+  
+    active?: boolean;
+  
+    activationToken?: string;
+    activationExpires?: Date;
+  
+    tokens?: AuthToken[];
+}
+
+const roles = [
+    "admin",      // site-wide admin
+    "owner",      // owner of a namespace - reader & writer & granter
+    "writer",     // can write to its namespace
+    "reader"      // can query values only
+]
+
+/*
 export class ConfigEntry {
     constructor(public value: any, public criteria: Map<string, string>) {}
 
@@ -44,28 +69,20 @@ export class ConfigItem {
 
 export class ConfigValue {
     constructor(
-        public id: number,
         public namespace: string, 
         public key: string, 
-        public value: ConfigItem,
-        public version: number) {}
+        public value: ConfigItem) {}
 
     static fromJson(blob: any) {
-        return new ConfigValue(
-            blob.id || null, 
-            blob.namespace, 
-            blob.key, 
-            ConfigItem.fromJson(blob.config_value_json), 
-            blob.version || 0);
+        return new ConfigValue(blob.namespace, blob.key, ConfigItem.fromJson(blob.value));
     }
 
     toJson(): object {
         return {
-            id: this.id,
             namespace: this.namespace,
             key: this.key,
-            config_value_json: this.value.toJson(),
-            version: this.version 
+            value: this.value.toJson()
         }
     }
 }
+*/

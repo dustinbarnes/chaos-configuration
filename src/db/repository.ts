@@ -1,24 +1,13 @@
-import * as Keyv from 'keyv';
-import { ConfigValue } from '../model';
+import * as Knex from 'knex';
 
 export class Repository {
-    private readonly keyv: Keyv;
+    protected readonly knex: Knex;
 
-    constructor(dbUrl: string) {
-        this.keyv = new Keyv(dbUrl);
-        this.keyv.on('error', (err: Error) => console.log('Connection Error', err));
-    }
-    
-    async get(ns: string, key: string): Promise<ConfigValue> {
-        const value = await this.keyv.get(this.toKey(ns, key));
-        return ConfigValue.fromJson(value);
-    }
-    
-    async set(ns: string, key: string, value: ConfigValue): Promise<true> {
-        return this.keyv.set(this.toKey(ns, key), value.toJson());
+    constructor(db: any) {
+        this.knex = Knex(db);
     }
 
-    private toKey(ns: string, key: string): string {
-        return `${ns}.${key}`;
+    public get db(): Knex {
+        return this.knex;
     }
 }

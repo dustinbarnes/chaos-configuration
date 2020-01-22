@@ -1,23 +1,20 @@
 import { OK, SERVICE_UNAVAILABLE, NOT_FOUND } from 'http-status-codes';
-import { Controller, Get } from '@overnightjs/core';
 import { Response, Application } from 'express';
 import { RequestExt } from '../logger';
-import { Repository } from '../db/repository';
+import { ConfigStore } from '../db/config-store';
+import { loadData } from '../util/data-loader';
 
-@Controller('api/admin')
 export class AdminController {
     constructor(private app: Application) {}
 
-    @Get(':namespace/:key')
-    public async get(req: RequestExt, res: Response) {
-        
+    public get = async (req: RequestExt, res: Response) => {
         try {
-            const repo: Repository = this.app.locals.repo;
+            const store: ConfigStore = this.app.locals.ConfigStore;
 
             const namespace: string = req.params.namespace;
             const key: string = req.params.key;
 
-            const result = await repo.get(namespace, key); 
+            const result = await store.get(namespace, key); 
             if (result) {
                 return res.status(OK).json(result);
             } else {
@@ -25,6 +22,16 @@ export class AdminController {
             }
         } catch (e) {
             req.log.error('Error', e);
+            return res.status(SERVICE_UNAVAILABLE).json({ health: 'BAD' });
+        }
+    }
+
+    public populateTestData = async (req: RequestExt, res: Response) => {
+        try {
+            loadData();
+            return res.status(OK).json({done: true});
+        } catch (e) {
+            console.log(e);
             return res.status(SERVICE_UNAVAILABLE).json({ health: 'BAD' });
         }
     }

@@ -1,11 +1,9 @@
-import { OK, SERVICE_UNAVAILABLE, NOT_FOUND, INTERNAL_SERVER_ERROR } from 'http-status-codes';
-import { Controller, Get } from '@overnightjs/core';
+import { OK, NOT_FOUND, INTERNAL_SERVER_ERROR } from 'http-status-codes';
 import { Response, Application } from 'express';
 import { RequestExt, Logger } from '../logger';
-import { Repository } from '../db/repository';
+import { ConfigStore } from '../db/config-store';
 import { Resolver, DefaultResolver } from '../resolver';
 
-@Controller('api/client')
 export class ClientController {
     private resolver: Resolver;
 
@@ -13,22 +11,22 @@ export class ClientController {
         this.resolver = new DefaultResolver();
     }
 
-    @Get(':namespace/:key')
-    public async get(req: RequestExt, res: Response) {
+    public get = async (req: RequestExt, res: Response) => {
         try {
             const namespace: string = req.params.namespace;
             const key: string = req.params.key;
         
             const query = JSON.parse(req.query.query || '{}');
-            const queryToMap = new Map(Object.entries(query));
+            const queryToMap = new Map<string, string>(Object.entries(query));
 
             Logger.getInstance().error(query);
             Logger.getInstance().error(queryToMap);
 
+            const store: ConfigStore = this.app.locals.ConfigStore;
 
-            const repo: Repository = this.app.locals.repo;
+            const result = await store.get(namespace, key); 
 
-            const result = await repo.get(namespace, key); 
+            Logger.getInstance().info(`Result is ${result}`);
 
             // In the ultimate version, i want the client libs to be executing this portion
             // This keeps the server extremely lightweight for GET requests. However, 
@@ -43,7 +41,7 @@ export class ClientController {
         } catch (e) {
             req.log.error('Error', e);
             Logger.getInstance().error(`Other logger`, e);
-            return res.status(SERVICE_UNAVAILABLE).json({ health: 'BAD' });
+            return res.status(INTERNAL_SERVER_ERROR).json({ health: 'BAD' });
         }
     }
 }

@@ -1,12 +1,10 @@
-import { Server } from './src/server';
+import { runServer } from './src/server';
 
-const server = new Server(null);
-server
-    .start()
-    .then(instance => {
-        const address = instance.server.address();
-        console.log(
-            `Server started on http://${address.address}:${address.port}`
-        );
-    })
-    .catch(console.error);
+console.log("about to run server");
+runServer()
+    .then(() => console.log('Service ready'))
+    .catch((e: Error) => {
+        console.log("i gots an error");
+        console.log(e);
+        process.exit(2)
+    });

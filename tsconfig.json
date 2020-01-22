@@ -23,7 +23,9 @@
     },
     "include": [
         "src/**/*",
+        "test/**/*",
         "./run.ts",
+        "./knexfile.ts",
         "__tests__/**/*"
     ]
 }
