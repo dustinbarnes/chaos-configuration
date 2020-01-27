@@ -20,6 +20,7 @@ export function buildRoutes(app: Application) {
 
     const clientRouter = Router();
     const clientController = new ClientController(app);
+    clientRouter.get('/:namespace/_all', clientController.getAll)
     clientRouter.get('/:namespace/:key', clientController.get);
     
     return {

@@ -1,5 +1,8 @@
-import { Arbiter } from './base';
-import { ConfigEntry } from '../model';
+import { ConfigEntry } from './model'
+
+export interface Arbiter {
+    arbitrate(items: ConfigEntry[], suppliedCriteria: Map<string, string>): ConfigEntry;
+}
 
 export class RankingArbiter implements Arbiter {
     constructor(private fieldMapping: Map<string, number> = new Map()) {}
@@ -13,7 +16,7 @@ export class RankingArbiter implements Arbiter {
         }
     }
 
-    arbitrate(items: ConfigEntry[], suppliedCriteria: Map<string, string>): ConfigEntry {
+    arbitrate(items: ConfigEntry[], criteria: Map<string, string>): ConfigEntry {
         // In this ranking arbiter, we assign a point value to each field name
         // See the above getCriteriaRank() method
         const sortedCandidates = items.sort((a, b) => {
@@ -31,3 +34,14 @@ export class RankingArbiter implements Arbiter {
         return sortedCandidates[0];
     }
 }
+
+export class DefaultArbiter extends RankingArbiter {
+    getCriteriaRank(name: string): number {
+        // In the default arbiter, every field has a score of 1. 
+
+        // Instead of going through the `if` checks, instead 
+        // just hardcode the knowledge
+        return 1;
+    }
+}
+

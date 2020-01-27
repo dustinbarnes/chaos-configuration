@@ -1,6 +1,8 @@
-import { ConfigItem, ConfigEntry } from '../model';
+import { ConfigItem, ConfigEntry } from './model';
 
-export * from './base'
+export interface Evaluator {
+    evaluate(item: ConfigItem, criteria: Map<string, string>): ConfigEntry[];
+}
 
 export class DefaultEvaluator {
     evaluate(item: ConfigItem, criteria: Map<string, string>): ConfigEntry[] {

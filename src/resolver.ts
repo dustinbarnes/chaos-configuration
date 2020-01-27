@@ -1,6 +1,6 @@
-import { ConfigItem } from '../model';
-import { Evaluator, DefaultEvaluator } from '../evaluator';
-import { Arbiter, DefaultArbiter } from '../arbiter';
+import { ConfigItem } from './model';
+import { Evaluator, DefaultEvaluator } from './evaluator';
+import { Arbiter, DefaultArbiter } from './arbiter';
 
 export interface Resolver {
     resolve(value: ConfigItem, criteria: Map<string, string>): any;

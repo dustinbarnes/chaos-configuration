@@ -6,6 +6,13 @@ export class ConfigStore extends Repository {
         super(db);
     }
     
+    async list(ns: string): Promise<ConfigValue[]> {
+        return this.knex<ConfigValue>('config_value')
+            .where({namespace: ns})
+            .select('*')
+            .then(vals => vals.map(ConfigValue.fromJson));
+    }
+
     async get(ns: string, key: string): Promise<ConfigValue> {
         return this.knex('config_value')
             .where({namespace: ns, key: key})
