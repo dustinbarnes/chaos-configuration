@@ -11,8 +11,15 @@ export class ConfigEntry {
 
     static fromJson(blob: any): ConfigEntry {
         const value = blob.value;
-        const criteria: Map<string, string> = new Map(Object.entries(blob.criteria));
-    
+        const entries: [string, string][] = Object.entries(blob.criteria);
+        const criteria = new Map(entries);
+
+        // console.log(`eol - ${criteria.size}`);
+        // for (let [k, v] of criteria.entries()) {
+        //     console.log(`${k} = ${v}`);
+        // }
+        // console.log(`eol2 - ${criteria.size}`);
+
         return new ConfigEntry(value, criteria);
     }
 
@@ -51,6 +58,9 @@ export class ConfigValue {
         public version: number) {}
 
     static fromJson(blob: any) {
+        if (blob === undefined) {
+            throw new Error("blob was undefined");
+        }
         return new ConfigValue(
             blob.id || null, 
             blob.namespace, 

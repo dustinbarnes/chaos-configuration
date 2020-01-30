@@ -15,15 +15,15 @@ async function setupDatabase(store: ConfigStore) {
 
 async function createConfigValues(store: ConfigStore): Promise<Promise<number>[]> {
     return dbState.configValues.map(item => {
-        return store.insert(ConfigValue.fromJson(item)).then();
+        return store.insert(ConfigValue.fromJson(item));
     });
 }
 
 export async function testDbInit(): Promise<true> {
     const config = getConfig();
-    //const db = Knex(config.db);    
+    // const db = Knex(config.db);    
 
-    //await db.migrate.latest();
+    // await db.migrate.latest();
 
     const store = new ConfigStore(config.db);
 

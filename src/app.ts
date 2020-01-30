@@ -6,26 +6,37 @@ import * as expressJwt from 'express-jwt';
 import * as swaggerUI from 'swagger-ui-express';
 // import * as swaggerDocument from '../swagger.json';
 // import { AuthRouter, SwaggerAPIRouter, UserRouter } from './routes';
-import { getConfig } from './config';
+import { getConfig, AppConfig } from './config';
 import { Logger } from './logger';
 import { EventEmitter } from 'events';
 import { ConfigStore } from './db/config-store';
 import { buildRoutes } from './routes';
+import { createContainer, asClass, asValue, AwilixContainer } from 'awilix';
+import { scopePerRequest } from 'awilix-express';
 
-export async function createApp(configStore: ConfigStore): Promise<express.Application> {
-    // Create Express server
-    const app: express.Application = express();
+export async function createApp(baseContainer?: AwilixContainer): Promise<express.Application> {
+    const container: AwilixContainer = baseContainer || createContainer();
+    
+    !container.has('config') && container.register('config', asValue(getConfig()));
+    !container.has('eventBus') && container.register('eventBus', asClass(EventEmitter).singleton());
+    !container.has('app') && container.register('all', asValue(express()));
 
-    // Build our config
-    const config = getConfig();
+    // Configure App
+    const app: express.Application = container.resolve('app');
+    const config: AppConfig = container.resolve('config');
 
     // Use Helmet (https://helmetjs.github.io/) for basic api security
     app.use(helmet());
 
-    // Some fun app-type-things
-    app.locals.ConfigStore = configStore || new ConfigStore(config.db);
-    app.locals.appConfig = config;
-    app.locals.eventBus = new EventEmitter();
+    !container.has('configStore') && container.register('configStore', asValue(new ConfigStore(config.db)));
+
+    container.register({
+        app: asValue(app),
+        configStore: asValue(new ConfigStore(config.db))
+    });
+
+    // Creates child container at `req.container` per request
+    app.use(scopePerRequest(container))
 
     // App Config
     // tslint:disable-next-line: no-backbone-get-set-outside-model
