@@ -44,7 +44,7 @@
         "express-validator": "^6.3.1",
         "helmet": "^3.21.2",
         "http-status-codes": "^1.4.0",
-        "knex": "^0.20.8",
+        "knex": "^2.4.0",
         "pg": "^7.17.1",
         "pino": "^5.13.5",
         "pino-pretty": "^3.2.2",
